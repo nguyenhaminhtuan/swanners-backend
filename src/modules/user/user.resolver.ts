@@ -1,4 +1,4 @@
-import { Mutation, Query, Resolver } from 'type-graphql';
+import { Args, Mutation, Query, Resolver } from 'type-graphql';
 import { User } from './user.typedefs';
 
 @Resolver(User)
@@ -9,12 +9,14 @@ export class UserResolver {
   }
 
   @Mutation(() => User, { nullable: true })
-  async login() {
+  async login(@Args() args: any) {
+    console.log(args);
     return null;
   }
 
   @Mutation(() => User, { nullable: true })
-  async register() {
+  async register(@Args() args: any) {
+    console.log(args);
     return null;
   }
 }
