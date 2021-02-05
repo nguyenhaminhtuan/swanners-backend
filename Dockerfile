@@ -20,11 +20,12 @@ RUN npm install --production && \
   npm i -g prisma
 
 COPY --from=build /usr/src/app/dist dist
-
 COPY --from=build /usr/src/app/prisma prisma
 
-RUN prisma generate
+ARG DATABASE_URL
+ENV DATABASE ${DATABASE_URL}
 
+RUN prisma generate
 RUN prisma migrate deploy --preview-feature
 
 CMD ["npm", "run", "start:prod"]
