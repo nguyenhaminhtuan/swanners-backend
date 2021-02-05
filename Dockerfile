@@ -21,6 +21,8 @@ RUN npm install --production && \
 
 COPY --from=build /usr/src/app/dist dist
 
+COPY --from=build /usr/src/app/prisma prisma
+
 RUN prisma generate
 
 CMD ["npm", "run", "start:prod"]
