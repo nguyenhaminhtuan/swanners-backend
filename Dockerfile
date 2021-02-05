@@ -25,4 +25,6 @@ COPY --from=build /usr/src/app/prisma prisma
 
 RUN prisma generate
 
+RUN prisma migrate deploy --preview-feature
+
 CMD ["npm", "run", "start:prod"]
