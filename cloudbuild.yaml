@@ -1,0 +1,42 @@
+steps:
+  - name: 'gcr.io/cloud-builders/npm'
+    id: Install dependencies
+    args: ['install']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Build image
+    args:
+      [
+        'build',
+        '-t',
+        'gcr.io/$PROJECT_ID/swanners-backend:$SHORT_SHA',
+        '-t',
+        'gcr.io/$PROJECT_ID/swanners-backend:lastest',
+        '.',
+      ]
+
+  - name: 'gcr.io/cloud-builders/npm'
+    id: Migrate
+    args: ['npx', 'prisma', 'migrate', 'deploy', '--preview-feature']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    id: Push image
+    args: ['push', 'gcr.io/$PROJECT_ID/swanners-backend']
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: Deploy cloud run
+    entrypoint: gcloud
+    args:
+      [
+        'run',
+        'deploy',
+        'swanners-backend',
+        '--image',
+        'gcr.io/$PROJECT_ID/swanners-backend',
+        '--region',
+        'asia-southeast1',
+        '--platform',
+        'managed',
+      ]
+
+images: ['gcr.io/$PROJECT_ID/swanners-backend']
