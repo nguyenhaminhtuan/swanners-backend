@@ -16,8 +16,8 @@ steps:
       ]
 
   - name: 'gcr.io/cloud-builders/npm'
-    id: Migrate
-    args: ['npx', 'prisma', 'migrate', 'deploy', '--preview-feature']
+    id: Migration
+    args: ['npm', 'run', 'migration']
     env:
       - 'DATABASE_URL=$_DATABASE_URL'
 
