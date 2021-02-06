@@ -35,7 +35,7 @@ steps:
 
   - id: Push image
     name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/swanners-backend']
+    args: ['push', 'gcr.io/$PROJECT_ID/swanners-backend:lastest']
 
   - id: Deploy cloud run
     name: 'gcr.io/cloud-builders/gcloud'
@@ -45,11 +45,11 @@ steps:
         'deploy',
         'swanners-backend',
         '--image',
-        'gcr.io/$PROJECT_ID/swanners-backend',
+        'gcr.io/$PROJECT_ID/swanners-backend:lastest',
         '--region',
         'asia-southeast1',
         '--platform',
         'managed',
       ]
 
-images: ['gcr.io/$PROJECT_ID/swanners-backend']
+images: ['gcr.io/$PROJECT_ID/swanners-backend:lastest']
