@@ -1,15 +1,7 @@
-availableSecrets:
-  secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/$_DATABASE_URL_ENV_NAME/versions/lastest
-      env: 'DATABASE_URL'
-
 steps:
   - id: Install dependencies
     name: 'gcr.io/cloud-builders/npm'
     args: ['install']
-    env:
-      - 'DATABASE_URL=$$DATABASE_URL'
-    secretEnv: ['DATABASE_URL']
 
   - id: Build image
     name: 'gcr.io/cloud-builders/docker'
@@ -60,8 +52,7 @@ steps:
         '--add-cloudsql-instances',
         '$_CLOUD_SQL_INSTANCE',
         '--set-env-vars',
-        'DATABASE_URL=$$DATABASE_URL',
+        'DATABASE_URL=$_DATABASE_URL',
       ]
-    secretEnv: ['DATABASE_URL']
 
 images: ['gcr.io/$PROJECT_ID/swanners-backend:lastest']
