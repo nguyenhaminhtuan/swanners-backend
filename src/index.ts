@@ -31,4 +31,4 @@ const server = new ApolloServer({
 server.applyMiddleware({ app });
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
-app.listen(PORT, () => console.log('Server ready to go'));
+app.listen(PORT, () => console.log('Server ready at port ' + PORT));

@@ -2,6 +2,9 @@ steps:
   - id: Install dependencies
     name: 'gcr.io/cloud-builders/npm'
     args: ['install']
+    env:
+      - 'DATABASE_URL=$$DATABASE_URL'
+    secretEnv: ['DATABASE_URL']
 
   - id: Build image
     name: 'gcr.io/cloud-builders/docker'
@@ -28,10 +31,8 @@ steps:
     args:
       [
         '-c',
-        '(/workspace/cloud_sql_proxy -dir=/cloudsql -instances=$_CONNECTION_NAME & sleep 2) && npm run migration',
+        '(/workspace/cloud_sql_proxy -dir=/cloudsql -instances=$_CLOUD_SQL_INSTANCE & sleep 2) && npm run migration',
       ]
-    env:
-      - 'DATABASE_URL=$_DATABASE_URL'
 
   - id: Push image
     name: 'gcr.io/cloud-builders/docker'
@@ -51,6 +52,16 @@ steps:
         '--platform',
         'managed',
         '--allow-unauthenticated',
+        '--add-cloudsql-instances',
+        '$_CLOUD_SQL_INSTANCE',
+        '--set-env-vars',
+        'DATABASE_URL=$$DATABASE_URL',
       ]
+    secretEnv: ['DATABASE_URL']
 
 images: ['gcr.io/$PROJECT_ID/swanners-backend:lastest']
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/$_DATABASE_URL_ENV_NAME/versions/lastest
+      env: 'DATABASE_URL'
