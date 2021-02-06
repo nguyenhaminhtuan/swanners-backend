@@ -28,7 +28,7 @@ steps:
     args:
       [
         '-c',
-        '(/workspace/cloud_sql_proxy -dir=/workspace -instances=$_CONNECTION_NAME & sleep 2) && npm run migration',
+        '(/workspace/cloud_sql_proxy -dir=/cloudsql -instances=$_CONNECTION_NAME & sleep 2) && npm run migration',
       ]
     env:
       - 'DATABASE_URL=$_DATABASE_URL'
