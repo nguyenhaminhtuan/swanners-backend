@@ -46,11 +46,11 @@ steps:
         'deploy',
         'swanners-backend',
         '--image',
-        'gcr.io/$PROJECT_ID/swanners-backend',
+        'gcr.io/$PROJECT_ID/swanners-backend:$COMMIT_SHA',
         '--region',
         'asia-southeast1',
         '--platform',
         'managed',
       ]
 
-images: ['gcr.io/$PROJECT_ID/swanners-backend']
+images: ['gcr.io/$PROJECT_ID/swanners-backend:$COMMIT_SHA']
