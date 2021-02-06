@@ -30,6 +30,8 @@ steps:
         '-c',
         '(/workspace/cloud_sql_proxy -dir=/cloudsql -instances=$_CLOUD_SQL_INSTANCE & sleep 2) && npm run migration',
       ]
+    env:
+      - 'DATABASE_URL=$_DATABASE_URL'
 
   - id: Push image
     name: 'gcr.io/cloud-builders/docker'
