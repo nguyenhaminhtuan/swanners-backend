@@ -1,10 +1,10 @@
 steps:
-  - name: 'gcr.io/cloud-builders/npm'
-    id: Install dependencies
+  - id: Install dependencies
+    name: 'gcr.io/cloud-builders/npm'
     args: ['install']
 
-  - name: 'gcr.io/cloud-builders/docker'
-    id: Build image
+  - id: Build image
+    name: 'gcr.io/cloud-builders/docker'
     args:
       [
         'build',
@@ -15,18 +15,30 @@ steps:
         '.',
       ]
 
-  - name: 'gcr.io/cloud-builders/npm'
-    id: Migration
-    args: ['run', 'migration']
+  - id: Install Cloud SQL proxy
+    name: alpine:3.10
+    entrypoint: sh
+    args:
+      - -c
+      - 'wget -O /workspace/cloud_sql_proxy https://storage.googleapis.com/cloudsql-proxy/v1.16/cloud_sql_proxy.linux.386 &&  chmod +x /workspace/cloud_sql_proxy'
+
+  - id: Migration
+    name: 'gcr.io/cloud-builders/npm'
+    entrypoint: sh
+    args:
+      [
+        '-c',
+        '(/workspace/cloud_sql_proxy -dir=/workspace -instances=$_CONNECTION_NAME & sleep 2) && npm run migration',
+      ]
     env:
       - 'DATABASE_URL=$_DATABASE_URL'
 
-  - name: 'gcr.io/cloud-builders/docker'
-    id: Push image
+  - id: Push image
+    name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/swanners-backend']
 
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    id: Deploy cloud run
+  - id: Deploy cloud run
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
       [
