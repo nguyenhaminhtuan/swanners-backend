@@ -1,0 +1,22 @@
+overwrite: true
+schema: 'http://localhost:4000/dev/graphql'
+documents: null
+generates:
+  src/type-generator.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-resolvers'
+    config:
+      useIndexSignature: true
+      contextType: ./graphql#Context
+      mappers:
+        User: '@prisma/client/index.d#User as UserModel'
+        Profile: '@prisma/client/index.d#Profile as ProfileModel'
+        Topic: '@prisma/client/index.d#Topic as TopicModel'
+        Post: '@prisma/client/index.d#Post as PostModel'
+        PostSeries: '@prisma/client/index.d#PostSeries as PostSeriesModel'
+        Like: '@prisma/client/index.d#Like as LikeModel'
+        Comment: '@prisma/client/index.d#Comment as CommentModel'
+hooks:
+  afterAllFileWrite:
+    - prettier --write

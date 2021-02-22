@@ -1,0 +1,126 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "rhel-openssl-1.0.x"]
+  previewFeatures = ["groupBy", "createMany"]
+}
+
+enum UserStatus {
+  ENABLED   @map("enabled")
+  DISABLED  @map("disabled")
+}
+
+enum UserGender {
+  MALE    @map("male")
+  FEMALE  @map("female")
+  OTHER   @map("other")
+}
+
+enum PostStatus {
+  DRAFT      @map("draft")
+  PUBLISHED  @map("published")
+  ARCHIVED   @map("archived")
+}
+
+enum LikeType {
+  LIKE   @map("like")
+  HEART  @map("heart")
+}
+
+model User {
+  id              String     @id
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  email           String     @unique
+  fullName        String
+  avatarUrl       String?
+  coverPicUrl     String?
+  status          UserStatus @default(DISABLED)
+  isVerified      Boolean    @default(false)
+  disabledAt      DateTime?
+  lastLoginAt     DateTime?
+  profile         Profile?
+  posts           Post[]
+  followingTopics Topic[]    @relation("UserFollowTopic")
+  likes           Like[]
+  comments        Comment[]
+}
+
+model Profile {
+  id       String      @id @default(uuid())
+  bio      String      @default("")
+  gender   UserGender?
+  birthDay DateTime?
+  phone    String?
+  userId   String
+  user     User        @relation(fields: [userId], references: [id])
+}
+
+model Topic {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  isActived Boolean  @default(true)
+  parentId  String?
+  parent    Topic?   @relation("ParentChildrenTopic", fields: [parentId], references: [id])
+  children  Topic[]  @relation("ParentChildrenTopic")
+  followers User[]   @relation("UserFollowTopic")
+  posts     Post[]   @relation("PostTopic")
+}
+
+model Post {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  content     String
+  coverPicUrl String?
+  status      PostStatus   @default(DRAFT)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  topics      Topic[]      @relation("PostTopic")
+  series      PostSeries[]
+  likes       Like[]
+  comments    Comment[]
+}
+
+model PostSeries {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  postId    String
+  posts     Post     @relation(fields: [postId], references: [id])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  type      LikeType @default(LIKE)
+  userId    String
+  postId    String
+  commentId String
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  comment   Comment  @relation(fields: [commentId], references: [id])
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  body      String
+  userId    String
+  postId    String?
+  commentId String?
+  user      User      @relation(fields: [userId], references: [id])
+  post      Post?     @relation(fields: [postId], references: [id])
+  comment   Comment?  @relation("CommentReplies", fields: [commentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  likes     Like[]
+}

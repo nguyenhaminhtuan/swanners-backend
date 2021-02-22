@@ -1,0 +1,84 @@
+service: swanners
+
+provider:
+  name: aws
+  stage: ${opt:stage, 'dev'}
+  region: ap-southeast-1
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  apiName: ${opt:stage, self:provider.stage, 'dev'}
+  environment:
+    COGNITO_URL: ${env:COGNITO_URL}
+    DATABASE_URL: ${env:DATABASE_URL}
+    S3_BUCKET: ${env:S3_BUCKET}
+
+useDotenv: true
+
+functions:
+  authorizer:
+    handler: src/authorizer.default
+  graphql:
+    handler: src/graphql.default
+    events:
+      - http:
+          path: graphql
+          method: post
+          cors: true
+      - http:
+          path: graphql
+          method: get
+          cors: true
+  getSignedUrl:
+    handler: src/getSignedUrl.default
+    events:
+      - http:
+          path: getSignedUrl
+          method: get
+          cors: true
+          authorizer: authorizer
+  preSignUp:
+    handler: src/cognito.preSignUp
+    events:
+      - cognitoUserPool:
+          trigger: PreSignUp
+          pool: ${self.service}-${self.provider.stage}
+          existing: true
+  postConfirmation:
+    handler: src/cognito.postConfirmation
+    events:
+      - cognitoUserPool:
+          trigger: PostConfirmation
+          pool: ${self.service}-${self.provider.stage}
+          existing: true
+  postAuthentication:
+    handler: src/cognito.postAuthentication
+    events:
+      - cognitoUserPool:
+          trigger: PostAuthentication
+          pool: ${self.service}-${self.provider.stage}
+          existing: true
+  preTokenGeneration:
+    handler: src/cognito.preTokenGeneration
+    events:
+      - cognitoUserPool:
+          trigger: PreTokenGeneration
+          pool: ${self.service}-${self.provider.stage}
+          existing: true
+
+custom:
+  webpack:
+    includeModules:
+      forceExclude:
+        - aws-sdk
+    packagerOptions:
+      scripts:
+        - prisma generate
+  serverless-offline:
+    httpPort: 4000
+
+package:
+  individually: true
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
