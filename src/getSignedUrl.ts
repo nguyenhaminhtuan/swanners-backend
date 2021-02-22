@@ -13,7 +13,7 @@ const getSignUrl: APIGatewayProxyHandler = async (event) => {
     const key = `${userId}/${uuid.v4()}.jpg`;
 
     const url = await s3.getSignedUrlPromise('putObject', {
-      Bucket: '',
+      Bucket: process.env.S3_BUCKET,
       ContentType: 'image/jpeg',
       Key: key,
       Expires: 300,
