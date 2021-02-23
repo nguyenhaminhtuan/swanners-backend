@@ -1,19 +1,20 @@
 import AWS from 'aws-sdk';
-import uuid from 'uuid';
-import { APIGatewayProxyHandler } from 'aws-lambda';
+import { v4 as uuid } from 'uuid';
+import { APIGatewayProxyHandler, S3Handler } from 'aws-lambda';
+import env from './config/env';
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
   signatureVersion: 'v4',
 });
 
-const getSignUrl: APIGatewayProxyHandler = async (event) => {
+export const getSignedURL: APIGatewayProxyHandler = async (event) => {
   try {
     const { sub: userId } = (event.requestContext.authorizer as any).claims;
-    const key = `${userId}/${uuid.v4()}.jpg`;
+    const key = `${userId}/${uuid()}.jpg`;
 
     const url = await s3.getSignedUrlPromise('putObject', {
-      Bucket: process.env.S3_BUCKET,
+      Bucket: env.bucket,
       ContentType: 'image/jpeg',
       Key: key,
       Expires: 300,
@@ -32,4 +33,6 @@ const getSignUrl: APIGatewayProxyHandler = async (event) => {
   }
 };
 
-export default getSignUrl;
+export const resizeImage: S3Handler = () => {
+  return;
+};

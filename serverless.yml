@@ -8,64 +8,16 @@ provider:
   lambdaHashingVersion: 20201221
   apiName: ${opt:stage, self:provider.stage, 'dev'}
   environment:
-    COGNITO_URL: ${env:COGNITO_URL}
+    S3_BUCKET: ${self:custom.bucket}
+    COGNITO_USER_POOL: ${self:custom.userPool}
+    AUTH_ISSUER: ${env:AUTH_ISSUER}
     DATABASE_URL: ${env:DATABASE_URL}
-    S3_BUCKET: ${env:S3_BUCKET}
 
 useDotenv: true
 
-functions:
-  authorizer:
-    handler: src/authorizer.default
-  graphql:
-    handler: src/graphql.default
-    events:
-      - http:
-          path: graphql
-          method: post
-          cors: true
-      - http:
-          path: graphql
-          method: get
-          cors: true
-  getSignedUrl:
-    handler: src/getSignedUrl.default
-    events:
-      - http:
-          path: getSignedUrl
-          method: get
-          cors: true
-          authorizer: authorizer
-  preSignUp:
-    handler: src/cognito.preSignUp
-    events:
-      - cognitoUserPool:
-          trigger: PreSignUp
-          pool: ${self.service}-${self.provider.stage}
-          existing: true
-  postConfirmation:
-    handler: src/cognito.postConfirmation
-    events:
-      - cognitoUserPool:
-          trigger: PostConfirmation
-          pool: ${self.service}-${self.provider.stage}
-          existing: true
-  postAuthentication:
-    handler: src/cognito.postAuthentication
-    events:
-      - cognitoUserPool:
-          trigger: PostAuthentication
-          pool: ${self.service}-${self.provider.stage}
-          existing: true
-  preTokenGeneration:
-    handler: src/cognito.preTokenGeneration
-    events:
-      - cognitoUserPool:
-          trigger: PreTokenGeneration
-          pool: ${self.service}-${self.provider.stage}
-          existing: true
-
 custom:
+  bucket: ${self:service}-${self:provider.stage}
+  userPool: ${self:service}-${self:provider.stage}
   webpack:
     includeModules:
       forceExclude:
@@ -82,3 +34,66 @@ package:
 plugins:
   - serverless-webpack
   - serverless-offline
+
+functions:
+  authorizer:
+    handler: src/authorizer.handler
+  graphql:
+    handler: src/graphql.handler
+    events:
+      - http:
+          path: graphql
+          method: post
+          cors: true
+      - http:
+          path: graphql
+          method: get
+          cors: true
+  upload:
+    handler: src/upload.getSignedURL
+    events:
+      - http:
+          path: upload
+          method: get
+          cors: true
+          authorizer: authorizer
+  preSignUp:
+    handler: src/cognito.preSignUp
+    events:
+      - cognitoUserPool:
+          trigger: PreSignUp
+          pool: ${self:custom.userPool}
+          existing: true
+  postConfirmation:
+    handler: src/cognito.postConfirmation
+    events:
+      - cognitoUserPool:
+          trigger: PostConfirmation
+          pool: ${self:custom.userPool}
+          existing: true
+  postAuthentication:
+    handler: src/cognito.postAuthentication
+    events:
+      - cognitoUserPool:
+          trigger: PostAuthentication
+          pool: ${self:custom.userPool}
+          existing: true
+  preTokenGeneration:
+    handler: src/cognito.preTokenGeneration
+    events:
+      - cognitoUserPool:
+          trigger: PreTokenGeneration
+          pool: ${self:custom.userPool}
+          existing: true
+
+resources:
+  Resources:
+    PublicUploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucket}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders: ['*']
+              AllowedMethods: [GET, POST, PUT]
+              AllowedOrigins: ['*']

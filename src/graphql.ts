@@ -4,6 +4,7 @@ import depthLimit from 'graphql-depth-limit';
 import env from './config/env';
 import schema from './schema';
 import db from './db';
+import logger from './utils/logger';
 import loader from './loaders';
 import { getToken, verifyToken } from './utils/auth';
 
@@ -14,6 +15,7 @@ interface HandlerParams {
 
 export interface Context extends HandlerParams {
   db: typeof db;
+  logger: typeof logger;
   loader: typeof loader;
   user: {
     sub: string;
@@ -35,7 +37,7 @@ const context = async ({ event, context }: HandlerParams) => {
     }
   }
 
-  return { event, context, db, loader, user };
+  return { event, context, db, logger, loader, user };
 };
 
 const server = new ApolloServer({
@@ -52,7 +54,7 @@ const server = new ApolloServer({
   validationRules: [depthLimit(4)],
 });
 
-export default server.createHandler({
+export const handler = server.createHandler({
   cors: {
     origin: true,
     credentials: true,

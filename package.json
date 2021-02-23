@@ -21,7 +21,9 @@
     "jsonwebtoken": "^8.5.1",
     "jwks-rsa": "^1.12.2",
     "lodash": "^4.17.20",
-    "uuid": "^8.3.2"
+    "sharp": "^0.27.2",
+    "uuid": "^8.3.2",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "1.20.1",

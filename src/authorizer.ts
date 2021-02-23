@@ -24,20 +24,18 @@ function generatePolicy(
   };
 }
 
-const authorizer: APIGatewayAuthorizerHandler = async (event) => {
+export const handler: APIGatewayAuthorizerHandler = async (event) => {
   if (!event.type || event.type !== 'TOKEN') {
-    throw new Error('Expected "event.type" parameter to have value "TOKEN"');
+    return generatePolicy('user', 'Deny', event.methodArn);
   }
 
   const tokenString = event.authorizationToken;
 
   if (!tokenString) {
-    throw new Error('Missing authorization header');
+    return generatePolicy('user', 'Deny', event.methodArn);
   }
 
   const token = getToken(tokenString);
   const payload = await verifyToken(token);
   return generatePolicy(payload.sub, 'Allow', event.methodArn);
 };
-
-export default authorizer;
