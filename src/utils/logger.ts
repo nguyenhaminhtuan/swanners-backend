@@ -9,16 +9,24 @@ import {
 const defaultOptions: LoggerOptions = {
   levels: config.syslog.levels,
   exitOnError: false,
-  format: format.combine(
-    format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    format.json()
-  ),
+  format: format.combine(format.timestamp(), format.json()),
   transports: [new transports.Console()],
 };
 
 const app = createLogger({
   ...defaultOptions,
+  defaultMeta: { component: 'app' },
   exceptionHandlers: [new transports.Console()],
 });
 
-export default { app };
+const database = createLogger({
+  ...defaultOptions,
+  defaultMeta: { component: 'database' },
+});
+
+const user = createLogger({
+  ...defaultOptions,
+  defaultMeta: { component: 'user' },
+});
+
+export default { app, database, user };

@@ -4,7 +4,7 @@ import { APIGatewayProxyHandler, S3Handler } from 'aws-lambda';
 import env from './config/env';
 
 const s3 = new AWS.S3({
-  region: process.env.AWS_REGION,
+  region: env.region,
   signatureVersion: 'v4',
 });
 
@@ -14,7 +14,7 @@ export const getSignedURL: APIGatewayProxyHandler = async (event) => {
     const key = `${userId}/${uuid()}.jpg`;
 
     const url = await s3.getSignedUrlPromise('putObject', {
-      Bucket: env.bucket,
+      Bucket: env.bucket.public,
       ContentType: 'image/jpeg',
       Key: key,
       Expires: 300,

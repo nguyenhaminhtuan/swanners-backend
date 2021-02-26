@@ -6,8 +6,8 @@ module.exports = {
   },
   plugins: ['@typescript-eslint/eslint-plugin'],
   extends: [
+    'prettier',
     'plugin:@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
     'plugin:prettier/recommended',
   ],
   root: true,
@@ -15,7 +15,7 @@ module.exports = {
     node: true,
     jest: true,
   },
-  ignorePatterns: ['.eslintrc.js', 'webpack.config.js', 'prisma/**'],
+  ignorePatterns: ['.eslintrc.js', 'webpack.config.js'],
   rules: {
     'no-console': 'warn',
     '@typescript-eslint/interface-name-prefix': 'off',

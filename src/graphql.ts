@@ -43,9 +43,13 @@ const context = async ({ event, context }: HandlerParams) => {
 const server = new ApolloServer({
   schema,
   context,
+  debug: !env.isProd,
   introspection: !env.isProd,
   playground: !env.isProd && {
     endpoint: '/dev/graphql',
+  },
+  engine: {
+    reportSchema: !env.isProd,
   },
   uploads: {
     maxFileSize: 10 * 1000 * 1000,

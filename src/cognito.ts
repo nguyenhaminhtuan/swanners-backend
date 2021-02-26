@@ -1,54 +1,39 @@
 import {
   PreSignUpTriggerHandler,
   PostConfirmationTriggerHandler,
-  PostAuthenticationTriggerHandler,
-  PreTokenGenerationTriggerHandler,
 } from 'aws-lambda';
 import db from './db';
+import logger from './utils/logger';
 
 export const preSignUp: PreSignUpTriggerHandler = async (
   event,
   context,
   callback
 ) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+
   const id = event.userName;
   const { email } = event.request.userAttributes;
-  const fullName = id.split('-')[0];
+  const fullName = 'USER-' + id.split('-')[0];
 
-  await db.user.create({
-    data: { id, email, fullName },
-  });
-  return callback(null, event);
+  try {
+    await db.user.create({
+      data: { id, email, fullName, profile: { create: {} } },
+    });
+    logger.user.info('User created');
+  } catch (error) {
+    logger.user.error('Create user error', error);
+  }
+
+  callback(null, event);
 };
 
-export const postComfirmation: PostConfirmationTriggerHandler = async (
+export const postComfirmation: PostConfirmationTriggerHandler = (
   event,
   context,
   callback
 ) => {
-  await db.user.update({
-    where: { id: event.userName },
-    data: { status: 'ENABLED' },
-  });
-  return callback(null, event);
-};
+  context.callbackWaitsForEmptyEventLoop = false;
 
-export const postAuthentication: PostAuthenticationTriggerHandler = async (
-  event,
-  context,
-  callback
-) => {
-  await db.user.update({
-    where: { id: event.userName },
-    data: { lastLoginAt: new Date() },
-  });
-  return callback(null, event);
-};
-
-export const preTokenGeneration: PreTokenGenerationTriggerHandler = async (
-  event,
-  context,
-  callback
-) => {
-  return callback(null, event);
+  callback(null, event);
 };

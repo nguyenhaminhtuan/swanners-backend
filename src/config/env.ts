@@ -4,8 +4,11 @@ const env = {
     issuer: process.env.AUTH_ISSUER || '',
   },
   region: process.env.AWS_REGION || 'ap-southeast1',
-  bucket: process.env.S3_BUCKET || '',
-  userPool: process.env.COGNITO_USER_POOL || '',
+  bucket: {
+    public: process.env.PUBLIC_BUCKET || '',
+    private: process.env.PRIVATE_BUCKET || '',
+  },
+  databaseURL: process.env.DATABASE_URL || '',
 };
 
 export default env;

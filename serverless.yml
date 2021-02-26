@@ -1,43 +1,61 @@
-service: swanners
+service: ${self:custom.serviceName}
 
 provider:
   name: aws
-  stage: ${opt:stage, 'dev'}
-  region: ap-southeast-1
+  stage: ${self:custom.stage}
+  region: ${self:custom.region}
   runtime: nodejs12.x
   lambdaHashingVersion: 20201221
-  apiName: ${opt:stage, self:provider.stage, 'dev'}
+  apiName: ${self.custom.stage}
   environment:
-    S3_BUCKET: ${self:custom.bucket}
-    COGNITO_USER_POOL: ${self:custom.userPool}
+    NODE_PATH: './:/opt/node_modules'
+    PUBLIC_BUCKET: ${self:custom.publicBucket}
+    PRIVATE_BUCKET: ${self:custom.privateBucket}
     AUTH_ISSUER: ${env:AUTH_ISSUER}
     DATABASE_URL: ${env:DATABASE_URL}
+    APOLLO_KEY: ${env:APOLLO_KEY}
+    APOLLO_GRAPH_VARIANT: ${self:custom.stage}
 
 useDotenv: true
 
 custom:
-  bucket: ${self:service}-${self:provider.stage}
-  userPool: ${self:service}-${self:provider.stage}
+  serviceName: swanners
+  region: ${opt:stage, 'ap-southeast-1'}
+  stage: ${opt:stage, 'dev'}
+  publicBucket: public-${self:custom.serviceName}-${self:provider.stage}
+  privateBucket: private-${self:custom.serviceName}-${self:provider.stage}
+  userPool: ${self:custom.serviceName}-${self:custom.stage}
+  # customDomain:
+  #   domainName: 'https://api.example.com'
+  #   stage: ${self:custom.stage}
+  #   basePath: ''
+  #   certificateName: '*.example.com'
+  #   createRoute53Record: true
+  #   endPointType: regional
+  #   securityPolicy: tls_1_2
+  #   enabled: true
   webpack:
-    includeModules:
-      forceExclude:
-        - aws-sdk
-    packagerOptions:
-      scripts:
-        - prisma generate
+    includeModules: false
   serverless-offline:
     httpPort: 4000
-
-package:
-  individually: true
 
 plugins:
   - serverless-webpack
   - serverless-offline
+  # - serverless-domain-manager
+
+layers:
+  function:
+    path: lambda-layer
+    package:
+      exclude:
+        - package*.json
 
 functions:
   authorizer:
     handler: src/authorizer.handler
+    layers:
+      - { Ref: FunctionLambdaLayer }
   graphql:
     handler: src/graphql.handler
     events:
@@ -49,6 +67,8 @@ functions:
           path: graphql
           method: get
           cors: true
+    layers:
+      - { Ref: FunctionLambdaLayer }
   upload:
     handler: src/upload.getSignedURL
     events:
@@ -57,6 +77,8 @@ functions:
           method: get
           cors: true
           authorizer: authorizer
+    layers:
+      - { Ref: FunctionLambdaLayer }
   preSignUp:
     handler: src/cognito.preSignUp
     events:
@@ -64,6 +86,8 @@ functions:
           trigger: PreSignUp
           pool: ${self:custom.userPool}
           existing: true
+    layers:
+      - { Ref: FunctionLambdaLayer }
   postConfirmation:
     handler: src/cognito.postConfirmation
     events:
@@ -71,29 +95,36 @@ functions:
           trigger: PostConfirmation
           pool: ${self:custom.userPool}
           existing: true
-  postAuthentication:
-    handler: src/cognito.postAuthentication
-    events:
-      - cognitoUserPool:
-          trigger: PostAuthentication
-          pool: ${self:custom.userPool}
-          existing: true
-  preTokenGeneration:
-    handler: src/cognito.preTokenGeneration
-    events:
-      - cognitoUserPool:
-          trigger: PreTokenGeneration
-          pool: ${self:custom.userPool}
-          existing: true
+    layers:
+      - { Ref: FunctionLambdaLayer }
 
 resources:
   Resources:
-    PublicUploadBucket:
+    PublicBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:custom.bucket}
+        BucketName: ${self:custom.publicBucket}
         CorsConfiguration:
           CorsRules:
-            - AllowedHeaders: ['*']
-              AllowedMethods: [GET, POST, PUT]
-              AllowedOrigins: ['*']
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - POST
+                - PUT
+              AllowedOrigins:
+                - '*'
+    PrivateBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.privateBucket}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedHeaders:
+                - '*'
+              AllowedMethods:
+                - GET
+                - POST
+                - PUT
+              AllowedOrigins:
+                - '*'

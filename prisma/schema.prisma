@@ -32,10 +32,10 @@ enum LikeType {
 }
 
 model User {
-  id              String     @id
+  id              String     @id @default(uuid())
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
-  email           String     @unique
+  email           String
   fullName        String
   avatarUrl       String?
   coverPicUrl     String?
