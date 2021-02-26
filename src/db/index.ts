@@ -11,7 +11,7 @@ const db = new PrismaClient({
 });
 
 db.$on('error', (event) => {
-  logger.app.error(event);
+  logger.database.error(event);
 });
 
 export default db;
