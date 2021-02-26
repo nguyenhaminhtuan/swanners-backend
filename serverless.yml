@@ -97,6 +97,24 @@ functions:
           existing: true
     layers:
       - { Ref: FunctionLambdaLayer }
+  postAuthentication:
+    handler: src/cognito.postAuthentication
+    events:
+      - cognitoUserPool:
+          trigger: PostAuthentication
+          pool: ${self:custom.userPool}
+          existing: true
+    layers:
+      - { Ref: FunctionLambdaLayer }
+  preTokenGeneration:
+    handler: src/cognito.preTokenGeneration
+    events:
+      - cognitoUserPool:
+          trigger: PreTokenGeneration
+          pool: ${self:custom.userPool}
+          existing: true
+    layers:
+      - { Ref: FunctionLambdaLayer }
 
 resources:
   Resources:

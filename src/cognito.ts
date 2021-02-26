@@ -1,6 +1,8 @@
 import {
   PreSignUpTriggerHandler,
   PostConfirmationTriggerHandler,
+  PostAuthenticationTriggerHandler,
+  PreTokenGenerationTriggerHandler,
 } from 'aws-lambda';
 import db from './db';
 import logger from './utils/logger';
@@ -28,12 +30,33 @@ export const preSignUp: PreSignUpTriggerHandler = async (
   callback(null, event);
 };
 
-export const postComfirmation: PostConfirmationTriggerHandler = (
+export const postComfirmation: PostConfirmationTriggerHandler = async (
   event,
   context,
   callback
 ) => {
   context.callbackWaitsForEmptyEventLoop = false;
 
+  await db.user.update({
+    where: { id: event.userName },
+    data: { status: 'ENABLED' },
+  });
+
+  callback(null, event);
+};
+
+export const postAuthentication: PostAuthenticationTriggerHandler = (
+  event,
+  context,
+  callback
+) => {
+  callback(null, event);
+};
+
+export const preTokenGeneration: PreTokenGenerationTriggerHandler = (
+  event,
+  context,
+  callback
+) => {
   callback(null, event);
 };
